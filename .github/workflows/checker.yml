@@ -15,7 +15,7 @@ permissions:
 
 env:
   GH_USER: ${{ github.repository_owner }}
-  CONFIG_PATH: config/followers.json
+  CONFIG_PATH: .github/followers.json
 
 jobs:
   check-followers:

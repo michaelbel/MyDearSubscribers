@@ -19,6 +19,6 @@ class AppService(
         const val HTTP_CACHE_SIZE_BYTES = 1024 * 1024 * 50
         const val CONNECT_TIMEOUT_MILLIS = 10_000L
 
-        const val DATA_URL = "https://raw.githubusercontent.com/michaelbel/MyDearSubscribers/refs/heads/develop/config/followers.json"
+        const val DATA_URL = "https://raw.githubusercontent.com/michaelbel/MyDearSubscribers/refs/heads/develop/.github/followers.json"
     }
 }

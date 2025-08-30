@@ -11,9 +11,6 @@ interface AppDao {
     @Query("SELECT * FROM followers")
     fun entitiesFlow(): Flow<List<FollowersEntity>>
 
-    @Query("SELECT * FROM followers WHERE type = :type")
-    fun entityFlow(type: String): Flow<FollowersEntity>
-
     @Upsert
     suspend fun upsertEntities(entities: List<FollowersEntity>)
 }
