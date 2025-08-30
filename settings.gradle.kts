@@ -23,7 +23,4 @@ dependencyResolutionManagement {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "MyDearSubscribers"
-include(
-    ":mobile",
-    ":core"
-)
+include(":app")
