@@ -49,7 +49,7 @@ jobs:
           mkdir -p "$(dirname "$CONFIG_PATH")"
           tmp="${CONFIG_PATH}.tmp"
           ts="$(date -u +%FT%TZ)"
-          printf '{"type":"github","login":"%s","followers":%s,"updatedAt":"%s"}\n' "$GH_USER" "$FOLLOWERS" "$ts" > "$tmp"
+          printf '{"type":"GitHub","login":"%s","followers":%s,"updatedAt":"%s"}\n' "$GH_USER" "$FOLLOWERS" "$ts" > "$tmp"
 
           if [ -f "$CONFIG_PATH" ]; then
             old="$(jq -r '.followers' "$CONFIG_PATH" || echo '')"

@@ -2,6 +2,8 @@
 
 package org.michaelbel.mydearsubscribers.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -19,7 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,60 +37,18 @@ fun MainActivityContent(
     viewModel: MainViewModel = koinViewModel()
 ) {
     val entities by viewModel.entities.collectAsStateWithLifecycle()
-    val layoutDirection = LocalLayoutDirection.current
+    if (entities.isEmpty()) return
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        ListElement(
-            entity = entities.firstOrNull() ?: FollowersEntity.Empty,
-            modifier = Modifier
-                .padding(
-                    start = innerPadding.calculateStartPadding(layoutDirection),
-                    top = innerPadding.calculateTopPadding(),
-                    end = innerPadding.calculateEndPadding(layoutDirection),
-                    bottom = 0.dp
-                )
-                .fillMaxSize()
-        )
-    }
-}
-
-@Composable
-fun ListElement(
-    entity: FollowersEntity,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF101411)),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "${entity.type} – ${entity.followers}",
-                style = MaterialTheme.typography.bodyLarge.copy(fontSize = 20.sp),
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .padding(96.dp)
-                    .fillMaxWidth()
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun ListElementPreview() {
-    AppTheme {
-        ListElement(
-            entity = FollowersEntity("GitHub", "", 0, "")
+        Text(
+            text = "${entities.first().type} – ${entities.first().followers} подписчиков",
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 32.sp),
+            color = Color(0xFFFFFFFF)
         )
     }
 }
