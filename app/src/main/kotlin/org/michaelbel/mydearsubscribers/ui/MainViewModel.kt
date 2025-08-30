@@ -4,15 +4,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.michaelbel.mydearsubscribers.interactor.AppInteractor
+import org.michaelbel.mydearsubscribers.repository.Repository
 import org.michaelbel.mydearsubscribers.room.FollowersEntity
 import org.michaelbel.mydearsubscribers.viewmodel.BaseViewModel
 
-class ListViewModel(
-    private val appInteractor: AppInteractor
+class MainViewModel(
+    private val repository: Repository
 ): BaseViewModel() {
 
-    val appEntities: StateFlow<List<FollowersEntity>> = appInteractor.entitiesFlow
+    val entities: StateFlow<List<FollowersEntity>> = repository.entitiesFlow
         .stateIn(
             scope = this,
             started = SharingStarted.Companion.Lazily,
@@ -20,6 +20,6 @@ class ListViewModel(
         )
 
     init {
-        launch { appInteractor.loadDataResponse() }
+        launch { repository.loadDataResponse() }
     }
 }

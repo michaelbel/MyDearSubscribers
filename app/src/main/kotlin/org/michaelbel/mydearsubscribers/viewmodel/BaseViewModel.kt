@@ -10,7 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelChildren
 import kotlin.coroutines.CoroutineContext
 
-open class BaseViewModel: ViewModel(), CoroutineScope {
+abstract class BaseViewModel: ViewModel(), CoroutineScope {
 
     private val scopeJob: Job = SupervisorJob()
 

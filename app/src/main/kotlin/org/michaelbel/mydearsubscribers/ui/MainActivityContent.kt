@@ -30,9 +30,9 @@ import org.michaelbel.mydearsubscribers.room.FollowersEntity
 
 @Composable
 fun MainActivityContent(
-    viewModel: ListViewModel = koinViewModel()
+    viewModel: MainViewModel = koinViewModel()
 ) {
-    val entities by viewModel.appEntities.collectAsStateWithLifecycle()
+    val entities by viewModel.entities.collectAsStateWithLifecycle()
     val layoutDirection = LocalLayoutDirection.current
 
     Scaffold(

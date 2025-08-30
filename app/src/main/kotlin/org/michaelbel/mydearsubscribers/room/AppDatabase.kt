@@ -12,7 +12,7 @@ import androidx.room.RoomDatabase
 )
 abstract class AppDatabase: RoomDatabase() {
 
-    abstract fun appDao(): AppDao
+    abstract fun appDao(): Dao
 
     companion object {
         private const val DATABASE_NAME = "app.db"

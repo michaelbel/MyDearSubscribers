@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FollowersResponse(
+data class SubscribersResponse(
     @SerialName("type") val type: String,
     @SerialName("login") val login: String,
     @SerialName("followers") val followers: Int,

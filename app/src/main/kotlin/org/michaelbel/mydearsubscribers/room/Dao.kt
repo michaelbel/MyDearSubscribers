@@ -6,7 +6,7 @@ import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface AppDao {
+interface Dao {
 
     @Query("SELECT * FROM followers")
     fun entitiesFlow(): Flow<List<FollowersEntity>>
