@@ -31,11 +31,11 @@ kotlin {
 }
 
 android {
-    namespace = "org.michaelbel.template" // fixme Replace with your own namespace
+    namespace = "org.michaelbel.mydearsubscribers"
     compileSdk = libs.versions.compile.sdk.get().toInt()
 
     defaultConfig {
-        applicationId = "org.michaelbel.template" // fixme Replace with your own applicationId
+        applicationId = "org.michaelbel.mydearsubscribers"
         minSdk = libs.versions.min.sdk.get().toInt()
         targetSdk = libs.versions.target.sdk.get().toInt()
         versionCode = gitCommitsCount
@@ -99,17 +99,6 @@ android {
         }
     }
 
-    flavorDimensions += "version"
-
-    productFlavors {
-        create("free") {
-            dimension = "version"
-        }
-        create("paid") {
-            dimension = "version"
-        }
-    }
-
     buildFeatures {
         buildConfig = true
         compose = true
@@ -117,7 +106,7 @@ android {
 }
 
 base {
-    archivesName.set("Mobile-Template-v${android.defaultConfig.versionName}(${android.defaultConfig.versionCode})") // fixme Replace with your own app's name
+    archivesName.set("MyDearSubscribers-v${android.defaultConfig.versionName}(${android.defaultConfig.versionCode})")
 }
 
 dependencies {

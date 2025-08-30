@@ -1,0 +1,78 @@
+name: Followers hourly check
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # раз в час
+  workflow_dispatch:
+
+concurrency:
+  group: followers-cron
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  GH_USER: ${{ github.repository_owner }}    # при желании задай конкретный логин
+  CONFIG_PATH: .config/followers.json
+
+jobs:
+  check-followers:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: fetch followers via GitHub API
+        id: fetch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_USER: ${{ env.GH_USER }}
+        run: |
+          set -euo pipefail
+          resp="$(curl -sS -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/users/${GH_USER}")"
+          followers="$(printf '%s' "$resp" | jq -r '.followers')"
+          if ! [[ "$followers" =~ ^[0-9]+$ ]]; then
+            echo "failed to parse followers from API"; echo "$resp"; exit 1
+          fi
+          echo "followers=${followers}" >> "$GITHUB_OUTPUT"
+
+      - name: prepare json
+        id: prepare
+        env:
+          CONFIG_PATH: ${{ env.CONFIG_PATH }}
+          GH_USER: ${{ env.GH_USER }}
+          FOLLOWERS: ${{ steps.fetch.outputs.followers }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$CONFIG_PATH")"
+          tmp="${CONFIG_PATH}.tmp"
+          ts="$(date -u +%FT%TZ)"
+          printf '{"login":"%s","followers":%s,"updatedAt":"%s"}\n' "$GH_USER" "$FOLLOWERS" "$ts" > "$tmp"
+
+          if [ -f "$CONFIG_PATH" ]; then
+            old="$(jq -r '.followers' "$CONFIG_PATH" || echo '')"
+          else
+            old=""
+          fi
+
+          if [ "$old" = "$FOLLOWERS" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            rm -f "$tmp"
+          else
+            mv "$tmp" "$CONFIG_PATH"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: commit and push if changed
+        if: steps.prepare.outputs.changed == 'true'
+        env:
+          CONFIG_PATH: ${{ env.CONFIG_PATH }}
+          FOLLOWERS: ${{ steps.fetch.outputs.followers }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$CONFIG_PATH"
+          git commit -m "chore: update followers count to ${FOLLOWERS} [skip ci]"
+          git push
