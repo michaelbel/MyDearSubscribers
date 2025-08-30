@@ -2,7 +2,7 @@ name: Followers hourly check
 
 on:
   schedule:
-    - cron: '0 * * * *'   # раз в час
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -13,8 +13,8 @@ permissions:
   contents: write
 
 env:
-  GH_USER: ${{ github.repository_owner }}    # при желании задай конкретный логин
-  CONFIG_PATH: .config/followers.json
+  GH_USER: ${{ github.repository_owner }}
+  CONFIG_PATH: config/followers.json
 
 jobs:
   check-followers:
@@ -48,7 +48,7 @@ jobs:
           mkdir -p "$(dirname "$CONFIG_PATH")"
           tmp="${CONFIG_PATH}.tmp"
           ts="$(date -u +%FT%TZ)"
-          printf '{"login":"%s","followers":%s,"updatedAt":"%s"}\n' "$GH_USER" "$FOLLOWERS" "$ts" > "$tmp"
+          printf '{"type":"github","login":"%s","followers":%s,"updatedAt":"%s"}\n' "$GH_USER" "$FOLLOWERS" "$ts" > "$tmp"
 
           if [ -f "$CONFIG_PATH" ]; then
             old="$(jq -r '.followers' "$CONFIG_PATH" || echo '')"
