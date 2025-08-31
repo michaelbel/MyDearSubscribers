@@ -18,9 +18,7 @@ class Repository(
             val appEntities = networkClient.dataResponse().map {
                 FollowersEntity(
                     type = it.type,
-                    login = it.login,
-                    followers = it.followers,
-                    updatedAt = it.updatedAt
+                    followers = it.followers
                 )
             }
             dao.upsertEntities(appEntities)

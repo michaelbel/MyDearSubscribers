@@ -10,7 +10,7 @@ class NetworkClient(
 ) {
     suspend fun dataResponse(): List<SubscribersResponse> {
         val response = httpClient.get(DATA_URL).bodyAsText()
-        return listOf(Json.decodeFromString<SubscribersResponse>(response))
+        return Json.decodeFromString<List<SubscribersResponse>>(response)
     }
 
     private companion object Companion {

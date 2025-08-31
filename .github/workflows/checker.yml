@@ -24,8 +24,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      # --- GitHub followers ---
-      - name: fetch followers via GitHub API
+      - name: fetch followers via github api
         id: gh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -37,35 +36,26 @@ jobs:
           [[ "$followers" =~ ^[0-9]+$ ]] || { echo "failed to parse GH followers"; echo "$resp"; exit 1; }
           echo "count=${followers}" >> "$GITHUB_OUTPUT"
 
-      # --- YouTube subscribers без API ключа: yt-dlp по @handle ---
-      - name: fetch subscribers via yt-dlp (no API key)
+      - name: fetch subscribers via yt-dlp
         id: yt
         run: |
           set -euo pipefail
-          # устанавливаем yt-dlp через pipx (без мусора в системе)
           python3 -m pip install --user --quiet pipx
           python3 -m pipx ensurepath
           export PATH="$HOME/.local/bin:$PATH"
           pipx run --spec yt-dlp yt-dlp --version >/dev/null
-
           url="https://www.youtube.com/@michaelbely"
-
-          # извлекаем channel_id и количество подписчиков; если скрыты — может вернуться пусто
           channel_id="$(pipx run yt-dlp -I 1 --print "%(channel_id)s" "$url" 2>/dev/null || true)"
           subs="$(pipx run yt-dlp -I 1 --print "%(channel_subscriber_count)s" "$url" 2>/dev/null || true)"
-
-          # fallback: страница "О канале"
           if ! [[ "${subs:-}" =~ ^[0-9]+$ ]]; then
             about_url="${url%/}/about"
             subs="$(curl -sS "$about_url" | grep -Eo '"subscriberCountText":[^}]+' | grep -Eo '[0-9]+' | head -n1 || true)"
           fi
-
-          [[ "${subs:-}" =~ ^[0-9]+$ ]] || { echo "failed to obtain YouTube subscribers (скрыто или парсинг не удался)"; exit 1; }
+          [[ "${subs:-}" =~ ^[0-9]+$ ]] || { echo "failed to obtain YouTube subscribers (парсинг не удался)"; exit 1; }
           echo "count=${subs}" >> "$GITHUB_OUTPUT"
           echo "cid=${channel_id}" >> "$GITHUB_OUTPUT"
 
-      # --- Единый JSON-список ---
-      - name: prepare single json (list)
+      - name: prepare single json
         id: prepare
         env:
           CONFIG_PATH: ${{ env.CONFIG_PATH }}
@@ -75,12 +65,10 @@ jobs:
           set -euo pipefail
           mkdir -p "$(dirname "$CONFIG_PATH")"
           tmp="${CONFIG_PATH}.tmp"
-
           jq -n --argjson gh "$GH_COUNT" --argjson yt "$YT_COUNT" '[
             {type:"github",  followers:$gh},
             {type:"youtube", followers:$yt}
           ]' > "$tmp"
-
           if [ -f "$CONFIG_PATH" ]; then
             old_gh="$(jq -r '.[] | select(.type=="github")  | .followers'  "$CONFIG_PATH" || echo '')"
             old_yt="$(jq -r '.[] | select(.type=="youtube") | .followers'  "$CONFIG_PATH" || echo '')"
@@ -89,7 +77,6 @@ jobs:
           fi
           echo "old_gh=${old_gh}" >> "$GITHUB_OUTPUT"
           echo "old_yt=${old_yt}" >> "$GITHUB_OUTPUT"
-
           if [ "$old_gh" = "$GH_COUNT" ] && [ "$old_yt" = "$YT_COUNT" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             rm -f "$tmp"
@@ -112,8 +99,7 @@ jobs:
           git commit -m "chore: update followers GH=${GH} YT=${YT} [skip ci]"
           git push
 
-      # --- FCM combined push (как раньше) ---
-      - name: extract project id from SA secret
+      - name: extract project id from sa secret
         id: pid
         env:
           SA_JSON: ${{ secrets.GCP_SA_KEY }}
@@ -126,7 +112,7 @@ jobs:
           echo "project_id=$pid" >> "$GITHUB_OUTPUT"
           rm -f sa.json
 
-      - name: auth to Google (FCM v1)
+      - name: auth to google
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
@@ -134,7 +120,7 @@ jobs:
       - name: setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: send FCM push (combined)
+      - name: send fcm push
         env:
           PROJECT_ID: ${{ steps.pid.outputs.project_id }}
           OWNER: ${{ env.GH_USER }}
@@ -147,12 +133,25 @@ jobs:
           ACCESS_TOKEN="$(gcloud auth print-access-token)"
           gh_old="${GH_OLD:-0}"; gh_new="${GH_NEW:-0}"; gh_delta=$(( gh_new - gh_old ))
           yt_old="${YT_OLD:-0}"; yt_new="${YT_NEW:-0}"; yt_delta=$(( yt_new - yt_old ))
-          body="GH ${OWNER}: ${gh_old} → ${gh_new} (Δ ${gh_delta}) | YT: ${yt_old} → ${yt_new} (Δ ${yt_delta})"
+          base="GH ${OWNER}: ${gh_old} → ${gh_new} (Δ ${gh_delta}) | YT: ${yt_old} → ${yt_new} (Δ ${yt_delta})"
+          extras=()
+          if [ "$gh_delta" -ne 0 ]; then
+            extras+=("$(printf '%+d' "$gh_delta") на гитхабе")
+          fi
+          if [ "$yt_delta" -ne 0 ]; then
+            extras+=("$(printf '%+d' "$yt_delta") на ютубе")
+          fi
+          extra_text=""
+          if [ "${#extras[@]}" -gt 0 ]; then
+            IFS=', '; extra_text="${extras[*]}"; unset IFS
+            base="${base} ${extra_text}"
+          fi
+          body="${base}"
           jq -n --arg body "$body" --arg ghd "$gh_delta" --arg ytd "$yt_delta" '{
             message:{
               topic:"followers_updates",
               android:{ notification:{ channel_id:"followers2" } },
-              notification:{title:"Followers update", body:$body},
+              notification:{title:"Привалило новых подписчиков!", body:$body},
               data:{type:"followers_combo", gh_delta:$ghd, yt_delta:$ytd}
             }
           }' > body.json

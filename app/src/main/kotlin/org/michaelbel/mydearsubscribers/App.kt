@@ -21,7 +21,7 @@ class App: Application() {
         }
         FirebaseMessaging.getInstance().subscribeToTopic("followers_updates")
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val uri = "android.resource://$packageName/${R.raw.new_github_subscriber}".toUri()
+        val uri = "android.resource://$packageName/${R.raw.sound}".toUri()
         val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_NOTIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)

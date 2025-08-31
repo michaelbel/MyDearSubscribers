@@ -6,7 +6,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SubscribersResponse(
     @SerialName("type") val type: String,
-    @SerialName("login") val login: String,
-    @SerialName("followers") val followers: Int,
-    @SerialName("updatedAt") val updatedAt: String
+    @SerialName("followers") val followers: Int
 )

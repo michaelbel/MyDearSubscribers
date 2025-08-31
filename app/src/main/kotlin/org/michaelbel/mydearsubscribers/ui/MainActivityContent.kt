@@ -2,6 +2,7 @@
 
 package org.michaelbel.mydearsubscribers.ui
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ fun MainActivityContent(
     viewModel: MainViewModel = koinViewModel()
 ) {
     val entities by viewModel.entities.collectAsStateWithLifecycle()
+    Log.e("2", "entities=$entities")
     if (entities.isEmpty()) return
 
     InnerContent(entities)
@@ -46,8 +48,8 @@ fun MainActivityContent(
 private fun InnerContent(
     entities: List<FollowersEntity>
 ) {
-    val github = entities.first()
-    val youtube = entities.first()
+    val githubFollowers = entities.find { it.type == "github" }?.followers ?: 0
+    val youtubeFollowers = entities.find { it.type == "youtube" }?.followers ?: 0
 
     val bg = Brush.verticalGradient(
         colorStops = arrayOf(
@@ -88,7 +90,7 @@ private fun InnerContent(
                 )
 
                 FollowersRow(
-                    count = github.followers,
+                    count = githubFollowers,
                     labelColor = Color(0xFFFFFFFF),
                     badgeTextColor = Color(0xFF101411),
                     modifier = Modifier.padding(top = 12.dp)
@@ -113,7 +115,7 @@ private fun InnerContent(
                 )
 
                 FollowersRow(
-                    count = youtube.followers,
+                    count = youtubeFollowers,
                     labelColor = Color(0xFFFFFFFF),
                     badgeTextColor = Color(0xFF101411),
                     modifier = Modifier.padding(top = 12.dp)
@@ -129,8 +131,8 @@ private fun InnerContentPreview() {
     AppTheme {
         InnerContent(
             entities = listOf(
-                FollowersEntity.Empty.copy(followers = 300),
-                FollowersEntity.Empty.copy(followers = 300)
+                FollowersEntity(type = "github", followers = 76),
+                FollowersEntity(type = "youtube", followers = 6)
             )
         )
     }
