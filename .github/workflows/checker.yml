@@ -2,7 +2,7 @@ name: Followers hourly check
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    - cron: '0 */12 * * *'   # каждые 12 часов (00:00 и 12:00 UTC)
   push:
   workflow_dispatch:
 
@@ -56,6 +56,7 @@ jobs:
           else
             old=""
           fi
+          echo "old=${old}" >> "$GITHUB_OUTPUT"
 
           if [ "$old" = "$FOLLOWERS" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -77,3 +78,50 @@ jobs:
           git add "$CONFIG_PATH"
           git commit -m "chore: update followers count to ${FOLLOWERS} [skip ci]"
           git push
+
+      # --- FCM v1: пуш при каждом запуске ---
+      - name: extract project id from SA secret
+        id: pid
+        env:
+          SA_JSON: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          set -euo pipefail
+          umask 177
+          printf '%s' "${SA_JSON}" > sa.json
+          pid="$(jq -r '.project_id' sa.json)"
+          [ -n "$pid" ] && [ "$pid" != "null" ] || { echo "project_id not found in SA"; exit 1; }
+          echo "project_id=$pid" >> "$GITHUB_OUTPUT"
+          rm -f sa.json
+
+      - name: auth to Google (FCM v1)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: send FCM push (every run)
+        env:
+          PROJECT_ID: ${{ steps.pid.outputs.project_id }}
+          OWNER: ${{ env.GH_USER }}
+          NEW: ${{ steps.fetch.outputs.followers }}
+          OLD: ${{ steps.prepare.outputs.old }}
+        run: |
+          set -euo pipefail
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          old="${OLD:-0}"; new="${NEW:-0}"; delta=$(( new - old ))
+          body="${OWNER}: ${old} → ${new} (Δ ${delta})"
+          jq -n --arg body "$body" --arg delta "$delta" '{
+            message:{
+              topic:"followers_updates",
+              notification:{title:"GitHub followers", body:$body},
+              data:{type:"followers", delta:$delta}
+            }
+          }' > body.json
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json; charset=UTF-8" \
+            -d @body.json \
+            "https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"

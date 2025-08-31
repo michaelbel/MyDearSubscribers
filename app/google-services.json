@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "703155460179",
+    "project_id": "mydearsubscribersapp",
+    "storage_bucket": "mydearsubscribersapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:703155460179:android:ee4c21c2de2006b2884ea6",
+        "android_client_info": {
+          "package_name": "org.michaelbel.mydearsubscribers"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPEin1otfqWKzOgk25JM7ubNODGOc1kaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

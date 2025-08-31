@@ -1,4 +1,3 @@
-
 import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 import java.util.Properties
@@ -10,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.parcelize)
+    alias(libs.plugins.google.services)
 }
 
 private val gitCommitsCount: Int by lazy {
@@ -95,7 +95,6 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
             signingConfig = signingConfigs.getByName("debug")//signingConfigs.getByName("debug")
-            applicationIdSuffix = ".debug"
         }
     }
 
@@ -112,6 +111,7 @@ base {
 dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.google.material)
+    implementation(libs.google.firebase.messaging.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.compose.foundation)
