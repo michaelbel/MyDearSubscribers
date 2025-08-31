@@ -55,29 +55,45 @@ jobs:
           echo "count=${subs}" >> "$GITHUB_OUTPUT"
           echo "cid=${channel_id}" >> "$GITHUB_OUTPUT"
 
+      - name: fetch subscribers via boosty
+        id: boosty
+        run: |
+          set -euo pipefail
+          html="$(curl -sS 'https://boosty.to/michaelbel')"
+          subs="$(printf '%s' "$html" | tr -d '\n' | grep -Eo '"subscribersCount":[[:space:]]*[0-9]+' | grep -Eo '[0-9]+' | head -n1 || true)"
+          if ! [[ "${subs:-}" =~ ^[0-9]+$ ]]; then
+            subs="$(printf '%s' "$html" | grep -Eio '[0-9][0-9]*[[:space:]]*subscribers' | grep -Eo '^[0-9]+' | head -n1 || true)"
+          fi
+          [[ "${subs:-}" =~ ^[0-9]+$ ]] || { echo "failed to obtain Boosty subscribers (парсинг не удался)"; exit 1; }
+          echo "count=${subs}" >> "$GITHUB_OUTPUT"
+
       - name: prepare single json
         id: prepare
         env:
           CONFIG_PATH: ${{ env.CONFIG_PATH }}
           GH_COUNT: ${{ steps.gh.outputs.count }}
           YT_COUNT: ${{ steps.yt.outputs.count }}
+          BT_COUNT: ${{ steps.boosty.outputs.count }}
         run: |
           set -euo pipefail
           mkdir -p "$(dirname "$CONFIG_PATH")"
           tmp="${CONFIG_PATH}.tmp"
-          jq -n --argjson gh "$GH_COUNT" --argjson yt "$YT_COUNT" '[
+          jq -n --argjson gh "$GH_COUNT" --argjson yt "$YT_COUNT" --argjson bt "$BT_COUNT" '[
             {type:"github",  followers:$gh},
-            {type:"youtube", followers:$yt}
+            {type:"youtube", followers:$yt},
+            {type:"boosty",  followers:$bt}
           ]' > "$tmp"
           if [ -f "$CONFIG_PATH" ]; then
             old_gh="$(jq -r '.[] | select(.type=="github")  | .followers'  "$CONFIG_PATH" || echo '')"
             old_yt="$(jq -r '.[] | select(.type=="youtube") | .followers'  "$CONFIG_PATH" || echo '')"
+            old_bt="$(jq -r '.[] | select(.type=="boosty")  | .followers'  "$CONFIG_PATH" || echo '')"
           else
-            old_gh=""; old_yt=""
+            old_gh=""; old_yt=""; old_bt=""
           fi
           echo "old_gh=${old_gh}" >> "$GITHUB_OUTPUT"
           echo "old_yt=${old_yt}" >> "$GITHUB_OUTPUT"
-          if [ "$old_gh" = "$GH_COUNT" ] && [ "$old_yt" = "$YT_COUNT" ]; then
+          echo "old_bt=${old_bt}" >> "$GITHUB_OUTPUT"
+          if [ "$old_gh" = "$GH_COUNT" ] && [ "$old_yt" = "$YT_COUNT" ] && [ "$old_bt" = "$BT_COUNT" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             rm -f "$tmp"
           else
@@ -91,12 +107,13 @@ jobs:
           CONFIG_PATH: ${{ env.CONFIG_PATH }}
           GH: ${{ steps.gh.outputs.count }}
           YT: ${{ steps.yt.outputs.count }}
+          BT: ${{ steps.boosty.outputs.count }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$CONFIG_PATH"
-          git commit -m "chore: update followers GH=${GH} YT=${YT} [skip ci]"
+          git commit -m "chore: update followers GH=${GH} YT=${YT} BT=${BT} [skip ci]"
           git push
 
       - name: extract project id from sa secret
@@ -125,31 +142,31 @@ jobs:
           PROJECT_ID: ${{ steps.pid.outputs.project_id }}
           GH_NEW: ${{ steps.gh.outputs.count }}
           YT_NEW: ${{ steps.yt.outputs.count }}
+          BT_NEW: ${{ steps.boosty.outputs.count }}
           GH_OLD: ${{ steps.prepare.outputs.old_gh }}
           YT_OLD: ${{ steps.prepare.outputs.old_yt }}
+          BT_OLD: ${{ steps.prepare.outputs.old_bt }}
         run: |
           set -euo pipefail
           ACCESS_TOKEN="$(gcloud auth print-access-token)"
           gh_old="${GH_OLD:-0}"; gh_new="${GH_NEW:-0}"; gh_delta=$(( gh_new - gh_old ))
           yt_old="${YT_OLD:-0}"; yt_new="${YT_NEW:-0}"; yt_delta=$(( yt_new - yt_old ))
-          if [ "$gh_delta" -le 0 ] && [ "$yt_delta" -le 0 ]; then
+          bt_old="${BT_OLD:-0}"; bt_new="${BT_NEW:-0}"; bt_delta=$(( bt_new - bt_old ))
+          if [ "$gh_delta" -le 0 ] && [ "$yt_delta" -le 0 ] && [ "$bt_delta" -le 0 ]; then
             echo "no positive growth — skipping push"
             exit 0
           fi
           parts=()
-          if [ "$gh_delta" -gt 0 ]; then
-            parts+=("+${gh_delta} на гитхабе")
-          fi
-          if [ "$yt_delta" -gt 0 ]; then
-            parts+=("+${yt_delta} на ютубе")
-          fi
+          if [ "$gh_delta" -gt 0 ]; then parts+=("+${gh_delta} на гитхабе"); fi
+          if [ "$yt_delta" -gt 0 ]; then parts+=("+${yt_delta} на ютубе"); fi
+          if [ "$bt_delta" -gt 0 ]; then parts+=("+${bt_delta} на бусти"); fi
           IFS=', '; body="${parts[*]}"; unset IFS
-          jq -n --arg body "$body" --arg ghd "$gh_delta" --arg ytd "$yt_delta" '{
+          jq -n --arg body "$body" --arg ghd "$gh_delta" --arg ytd "$yt_delta" --arg btd "$bt_delta" '{
             message:{
               topic:"followers_updates",
               android:{ notification:{ channel_id:"followers2" } },
               notification:{title:"Привалило новых подписчиков!", body:$body},
-              data:{type:"followers_combo", gh_delta:$ghd, yt_delta:$ytd}
+              data:{type:"followers_combo", gh_delta:$ghd, yt_delta:$ytd, bt_delta:$btd}
             }
           }' > body.json
           curl -sS -X POST \
@@ -159,7 +176,7 @@ jobs:
             "https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"
 
       - name: send fcm push (test)
-        if: true
+        if: ${{ false }}
         env:
           PROJECT_ID: ${{ steps.pid.outputs.project_id }}
         run: |
