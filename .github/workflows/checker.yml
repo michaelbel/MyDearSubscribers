@@ -2,7 +2,7 @@ name: Followers hourly check
 
 on:
   schedule:
-    - cron: '0 */12 * * *'   # каждые 12 часов (00:00 и 12:00 UTC)
+    - cron: '0 * * * *'
   push:
   workflow_dispatch:
 
