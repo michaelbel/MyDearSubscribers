@@ -6,5 +6,9 @@
   {
     "type": "youtube",
     "followers": 6
+  },
+  {
+    "type": "boosty",
+    "followers": 1000
   }
 ]
