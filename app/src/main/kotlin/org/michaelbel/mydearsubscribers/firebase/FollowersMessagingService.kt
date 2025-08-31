@@ -20,10 +20,7 @@ class FollowersMessagingService: FirebaseMessagingService() {
         val body = msg.notification?.body ?: "updated"
         val delta = msg.data["delta"] ?: "0"
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.createNotificationChannel(
-            NotificationChannel("followers", "Followers", NotificationManager.IMPORTANCE_DEFAULT)
-        )
-        val n = NotificationCompat.Builder(this, "followers")
+        val n = NotificationCompat.Builder(this, "followers2")
             .setSmallIcon(android.R.drawable.stat_notify_more)
             .setContentTitle(title)
             .setContentText("$body (Δ $delta)")
