@@ -59,22 +59,46 @@ jobs:
         id: boosty
         run: |
           set -euo pipefail
-          norm="$(curl -sS 'https://boosty.to/michaelbel' -H 'Accept-Language: ru,en;q=0.9' --compressed \
-                   | tr '\n' ' ' | sed 's/&nbsp;/ /g')"
-          subs="$(printf '%s' "$norm" \
-            | grep -Po '<span class="BlogCardStat-scss--module_count_[^"]+">[0-9][0-9 .,]*</span>\s*<span[^>]*>подписчиков</span>' \
-            | grep -Po '[0-9][0-9 .,]*' \
-            | head -n1 \
-            | tr -d ' .,' || true)"
-          if ! [[ "${subs:-}" =~ ^[0-9]+$ ]]; then
-            subs="$(printf '%s' "$norm" \
-              | grep -Eoi '[0-9][0-9 .,]*[[:space:]]*подписчик(ов|а)?' \
-              | head -n1 \
-              | grep -Eo '^[0-9][0-9 .,]*' \
-              | tr -d ' .,' || true)"
-          fi
-          [[ "${subs:-}" =~ ^[0-9]+$ ]] || { echo "failed to obtain Boosty subscribers"; exit 1; }
-          echo "count=${subs}" >> "$GITHUB_OUTPUT"
+          python3 - <<'PY'
+          import os, re, sys, urllib.request
+          url = "https://boosty.to/michaelbel"
+          req = urllib.request.Request(
+              url,
+              headers={
+                  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36",
+                  "Accept-Language": "ru,en;q=0.9",
+              },
+          )
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  html = r.read().decode("utf-8", "ignore")
+          except Exception as e:
+              print(f"request failed: {e}", file=sys.stderr)
+              sys.exit(1)
+
+          text = html.replace("\xa0", " ").replace("\n", " ")
+
+          # 1) <span class="BlogCardStat-scss--module_count_*">NN</span><span>подписчиков|subscribers</span>
+          m = re.search(
+              r'<span class="BlogCardStat-scss--module_count_[^"]+">([^<]+)</span>\s*<span[^>]*>(подписчик(?:ов|а)?|subscribers)</span>',
+              text, re.IGNORECASE)
+          num = None
+          if m:
+              num = re.sub(r"[^0-9]", "", m.group(1) or "")
+
+          # 2) fallback: число перед словом "подписчиков|subscribers"
+          if not num:
+              m2 = re.search(r'([0-9][0-9\s.,]*)\s*(подписчик(?:ов|а)?|subscribers)', text, re.IGNORECASE)
+              if m2:
+                  num = re.sub(r"[^0-9]", "", m2.group(1) or "")
+
+          if not num or not num.isdigit():
+              print("failed to obtain Boosty subscribers", file=sys.stderr)
+              sys.exit(1)
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"count={num}\n")
+          PY
 
       - name: prepare single json
         id: prepare
@@ -158,18 +182,22 @@ jobs:
         run: |
           set -euo pipefail
           ACCESS_TOKEN="$(gcloud auth print-access-token)"
+
           gh_old="${GH_OLD:-0}"; gh_new="${GH_NEW:-0}"; gh_delta=$(( gh_new - gh_old ))
           yt_old="${YT_OLD:-0}"; yt_new="${YT_NEW:-0}"; yt_delta=$(( yt_new - yt_old ))
           bt_old="${BT_OLD:-0}"; bt_new="${BT_NEW:-0}"; bt_delta=$(( bt_new - bt_old ))
+
           if [ "$gh_delta" -le 0 ] && [ "$yt_delta" -le 0 ] && [ "$bt_delta" -le 0 ]; then
             echo "no positive growth — skipping push"
             exit 0
           fi
+
           parts=()
           if [ "$gh_delta" -gt 0 ]; then parts+=("+${gh_delta} на гитхабе"); fi
           if [ "$yt_delta" -gt 0 ]; then parts+=("+${yt_delta} на ютубе"); fi
           if [ "$bt_delta" -gt 0 ]; then parts+=("+${bt_delta} на бусти"); fi
           IFS=', '; body="${parts[*]}"; unset IFS
+
           jq -n --arg body "$body" --arg ghd "$gh_delta" --arg ytd "$yt_delta" --arg btd "$bt_delta" '{
             message:{
               topic:"followers_updates",
@@ -178,6 +206,7 @@ jobs:
               data:{type:"followers_combo", gh_delta:$ghd, yt_delta:$ytd, bt_delta:$btd}
             }
           }' > body.json
+
           curl -sS -X POST \
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             -H "Content-Type: application/json; charset=UTF-8" \
