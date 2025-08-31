@@ -59,12 +59,21 @@ jobs:
         id: boosty
         run: |
           set -euo pipefail
-          html="$(curl -sS 'https://boosty.to/michaelbel')"
-          subs="$(printf '%s' "$html" | tr -d '\n' | grep -Eo '"subscribersCount":[[:space:]]*[0-9]+' | grep -Eo '[0-9]+' | head -n1 || true)"
+          norm="$(curl -sS 'https://boosty.to/michaelbel' -H 'Accept-Language: ru,en;q=0.9' --compressed \
+                   | tr '\n' ' ' | sed 's/&nbsp;/ /g')"
+          subs="$(printf '%s' "$norm" \
+            | grep -Po '<span class="BlogCardStat-scss--module_count_[^"]+">[0-9][0-9 .,]*</span>\s*<span[^>]*>подписчиков</span>' \
+            | grep -Po '[0-9][0-9 .,]*' \
+            | head -n1 \
+            | tr -d ' .,' || true)"
           if ! [[ "${subs:-}" =~ ^[0-9]+$ ]]; then
-            subs="$(printf '%s' "$html" | grep -Eio '[0-9][0-9]*[[:space:]]*subscribers' | grep -Eo '^[0-9]+' | head -n1 || true)"
+            subs="$(printf '%s' "$norm" \
+              | grep -Eoi '[0-9][0-9 .,]*[[:space:]]*подписчик(ов|а)?' \
+              | head -n1 \
+              | grep -Eo '^[0-9][0-9 .,]*' \
+              | tr -d ' .,' || true)"
           fi
-          [[ "${subs:-}" =~ ^[0-9]+$ ]] || { echo "failed to obtain Boosty subscribers (парсинг не удался)"; exit 1; }
+          [[ "${subs:-}" =~ ^[0-9]+$ ]] || { echo "failed to obtain Boosty subscribers"; exit 1; }
           echo "count=${subs}" >> "$GITHUB_OUTPUT"
 
       - name: prepare single json
@@ -176,7 +185,7 @@ jobs:
             "https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"
 
       - name: send fcm push (test)
-        if: ${{ false }}
+        if: ${{ true }}
         env:
           PROJECT_ID: ${{ steps.pid.outputs.project_id }}
         run: |
