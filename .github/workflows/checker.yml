@@ -123,7 +123,6 @@ jobs:
       - name: send fcm push
         env:
           PROJECT_ID: ${{ steps.pid.outputs.project_id }}
-          OWNER: ${{ env.GH_USER }}
           GH_NEW: ${{ steps.gh.outputs.count }}
           YT_NEW: ${{ steps.yt.outputs.count }}
           GH_OLD: ${{ steps.prepare.outputs.old_gh }}
@@ -133,20 +132,18 @@ jobs:
           ACCESS_TOKEN="$(gcloud auth print-access-token)"
           gh_old="${GH_OLD:-0}"; gh_new="${GH_NEW:-0}"; gh_delta=$(( gh_new - gh_old ))
           yt_old="${YT_OLD:-0}"; yt_new="${YT_NEW:-0}"; yt_delta=$(( yt_new - yt_old ))
-          base="GH ${OWNER}: ${gh_old} → ${gh_new} (Δ ${gh_delta}) | YT: ${yt_old} → ${yt_new} (Δ ${yt_delta})"
-          extras=()
-          if [ "$gh_delta" -ne 0 ]; then
-            extras+=("$(printf '%+d' "$gh_delta") на гитхабе")
+          if [ "$gh_delta" -le 0 ] && [ "$yt_delta" -le 0 ]; then
+            echo "no positive growth — skipping push"
+            exit 0
           fi
-          if [ "$yt_delta" -ne 0 ]; then
-            extras+=("$(printf '%+d' "$yt_delta") на ютубе")
+          parts=()
+          if [ "$gh_delta" -gt 0 ]; then
+            parts+=("+${gh_delta} на гитхабе")
           fi
-          extra_text=""
-          if [ "${#extras[@]}" -gt 0 ]; then
-            IFS=', '; extra_text="${extras[*]}"; unset IFS
-            base="${base} ${extra_text}"
+          if [ "$yt_delta" -gt 0 ]; then
+            parts+=("+${yt_delta} на ютубе")
           fi
-          body="${base}"
+          IFS=', '; body="${parts[*]}"; unset IFS
           jq -n --arg body "$body" --arg ghd "$gh_delta" --arg ytd "$yt_delta" '{
             message:{
               topic:"followers_updates",
