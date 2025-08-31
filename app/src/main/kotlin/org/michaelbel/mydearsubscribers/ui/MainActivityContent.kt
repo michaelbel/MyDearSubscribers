@@ -2,19 +2,13 @@
 
 package org.michaelbel.mydearsubscribers.ui
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,7 +32,6 @@ fun MainActivityContent(
     viewModel: MainViewModel = koinViewModel()
 ) {
     val entities by viewModel.entities.collectAsStateWithLifecycle()
-    Log.e("2", "entities=$entities")
     if (entities.isEmpty()) return
 
     InnerContent(entities)
@@ -50,6 +43,7 @@ private fun InnerContent(
 ) {
     val githubFollowers = entities.find { it.type == "github" }?.followers ?: 0
     val youtubeFollowers = entities.find { it.type == "youtube" }?.followers ?: 0
+    val boostyFollowers = entities.find { it.type == "boosty" }?.followers ?: 0
 
     val bg = Brush.verticalGradient(
         colorStops = arrayOf(
@@ -59,8 +53,9 @@ private fun InnerContent(
             0.45F to Color(0xFF241414),
             0.60F to Color(0xFF3A1515),
             0.75F to Color(0xFF6A0E0E),
-            0.88F to Color(0xFFB01010),
-            1.00F to Color(0xFFFF0000)
+            0.85F to Color(0xFFB01010),
+            0.93F to Color(0xFFE4481E),
+            1.00F to Color(0xFFF15F2C)
         )
     )
 
@@ -88,7 +83,6 @@ private fun InnerContent(
                     ),
                     color = Color(0xFFFFFFFF)
                 )
-
                 FollowersRow(
                     count = githubFollowers,
                     labelColor = Color(0xFFFFFFFF),
@@ -113,9 +107,33 @@ private fun InnerContent(
                     ),
                     color = Color(0xFFFFFFFF)
                 )
-
                 FollowersRow(
                     count = youtubeFollowers,
+                    labelColor = Color(0xFFFFFFFF),
+                    badgeTextColor = Color(0xFF101411),
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .weight(1F)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Boosty",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontSize = 72.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = Color(0xFFFFFFFF)
+                )
+
+                FollowersRow(
+                    count = boostyFollowers,
                     labelColor = Color(0xFFFFFFFF),
                     badgeTextColor = Color(0xFF101411),
                     modifier = Modifier.padding(top = 12.dp)
@@ -132,52 +150,9 @@ private fun InnerContentPreview() {
         InnerContent(
             entities = listOf(
                 FollowersEntity(type = "github", followers = 76),
-                FollowersEntity(type = "youtube", followers = 6)
+                FollowersEntity(type = "youtube", followers = 6),
+                FollowersEntity(type = "boosty", followers = 15)
             )
-        )
-    }
-}
-
-@Composable
-private fun FollowersRow(
-    count: Int,
-    labelColor: Color,
-    badgeTextColor: Color,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .background(Color.White, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = count.toString(),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
-                ),
-                color = badgeTextColor,
-                textAlign = TextAlign.Center
-            )
-        }
-
-        Spacer(
-            modifier = Modifier.size(12.dp)
-        )
-
-        Text(
-            text = "подписчиков",
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Medium
-            ),
-            color = labelColor
         )
     }
 }
