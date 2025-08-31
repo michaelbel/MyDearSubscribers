@@ -24,6 +24,10 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="followers2"/>
+
         <service
             android:name=".firebase.FollowersMessagingService"
             android:exported="false">

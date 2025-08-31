@@ -115,8 +115,9 @@ jobs:
           jq -n --arg body "$body" --arg delta "$delta" '{
             message:{
               topic:"followers_updates",
+              android:{ notification:{ channel_id:"followers2" } },
               notification:{title:"GitHub followers", body:$body},
-              data:{type:"followers2", delta:$delta}
+              data:{type:"followers", delta:$delta}
             }
           }' > body.json
 
