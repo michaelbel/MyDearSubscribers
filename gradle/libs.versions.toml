@@ -4,20 +4,14 @@ compile-sdk = "36"
 target-sdk = "36"
 jdk = "21"
 agp = "8.12.2"
-
 kotlin = "2.2.10"
 kotlinx-serialization = "1.9.0"
-
 google-ksp = "2.2.10-2.0.2"
 google-services = "4.4.3"
 google-material = "1.12.0"
 google-firebase-messaging = "24.1.2"
 androidx-activity = "1.10.1"
-androidx-ads = "1.0.0-alpha05"
-androidx-annotation = "1.9.1"
-androidx-annotation-experimental = "1.5.1"
 androidx-appcompat = "1.7.1"
-androidx-baselineprofile = "1.4.0"
 androidx-compose-foundation = "1.9.0"
 androidx-compose-runtime = "1.9.0"
 androidx-compose-ui = "1.9.0"
@@ -27,53 +21,23 @@ androidx-core = "1.17.0"
 androidx-core-splashscreen = "1.0.1"
 androidx-datastore = "1.1.7"
 androidx-lifecycle = "2.9.3"
-androidx-lint = "30.0.1"
 androidx-navigation = "2.9.3"
-androidx-navigation3 = "1.0.0-alpha08"
 androidx-room = "2.7.2"
-androidx-webkit = "1.14.0"
 androidx-window = "1.4.0"
-
-detekt = "1.23.8"
-kode-detekt-rules-compose = "1.4.0"
-twitter-compose-rules-detekt = "0.0.26"
-nlopez-compose-rules-detekt = "0.4.22"
-vk-vkompose-detekt = "0.6"
 ktor = "3.2.3"
-okio = "3.16.0"
 okhttp = "5.1.0"
-retrofit = "3.0.0"
-chucker = "4.2.0"
-moshi = "1.15.2"
-rxjava3 = "3.1.10"
-rxjava3-rxkotlin = "3.0.1"
-rxjava3-rxandroid = "3.0.2"
-timber = "5.0.1"
 coil = "2.7.0"
-coil3 = "3.2.0"
-cicerone = "7.1"
-lottie = "6.6.7"
-vbpd = "2.0.4"
-leakcanary = "2.14"
-kotlin-inject = "0.8.0"
 koin = "4.1.0"
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 google-material = { module = "com.google.android.material:material", version.ref = "google-material" }
 google-firebase-messaging-ktx = { module = "com.google.firebase:firebase-messaging-ktx", version.ref = "google-firebase-messaging" }
-androidx-activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidx-activity" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
-androidx-ads-identifier = { module = "androidx.ads:ads-identifier", version.ref = "androidx-ads" }
-androidx-ads-identifier-provider = { module = "androidx.ads:ads-identifier-provider", version.ref = "androidx-ads" }
-androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
-androidx-annotation-experimental = { module = "androidx.annotation:annotation-experimental", version.ref = "androidx-annotation-experimental" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
-androidx-appcompat-resources = { module = "androidx.appcompat:appcompat-resources", version.ref = "androidx-appcompat" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "androidx-compose-foundation" }
 androidx-compose-foundation-layout = { module = "androidx.compose.foundation:foundation-layout", version.ref = "androidx-compose-foundation" }
 androidx-compose-material = { module = "androidx.compose.material:material", version.ref = "androidx-compose-material" }
-androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "androidx-compose-material" }
 androidx-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "androidx-compose-material3" }
 androidx-compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "androidx-compose-runtime" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidx-compose-ui" }
