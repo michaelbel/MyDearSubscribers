@@ -116,7 +116,7 @@ jobs:
             message:{
               topic:"followers_updates",
               notification:{title:"GitHub followers", body:$body},
-              data:{type:"followers", delta:$delta}
+              data:{type:"followers2", delta:$delta}
             }
           }' > body.json
 
