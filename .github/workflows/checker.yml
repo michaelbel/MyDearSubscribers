@@ -157,3 +157,25 @@ jobs:
             -H "Content-Type: application/json; charset=UTF-8" \
             -d @body.json \
             "https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"
+
+      - name: send fcm push (test)
+        if: true
+        env:
+          PROJECT_ID: ${{ steps.pid.outputs.project_id }}
+        run: |
+          set -euo pipefail
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          body="+1 на гитхабе, +1 на ютубе"
+          jq -n --arg body "$body" '{
+            message:{
+              topic:"followers_updates",
+              android:{ notification:{ channel_id:"followers2" } },
+              notification:{title:"Привалило новых подписчиков!", body:$body},
+              data:{type:"followers_combo_test", gh_delta:"+1", yt_delta:"+1"}
+            }
+          }' > body_test.json
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "Content-Type: application/json; charset=UTF-8" \
+            -d @body_test.json \
+            "https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send"
