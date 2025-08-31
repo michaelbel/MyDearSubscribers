@@ -79,7 +79,6 @@ jobs:
           git commit -m "chore: update followers count to ${FOLLOWERS} [skip ci]"
           git push
 
-      # --- FCM v1: пуш при каждом запуске ---
       - name: extract project id from SA secret
         id: pid
         env:
