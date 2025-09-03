@@ -46,7 +46,7 @@ android {
         getByName("debug") {
             keyAlias = "template"
             keyPassword = "password"
-            storeFile = rootProject.file("config/debug-key.jks")
+            storeFile = rootProject.file(".github/debug-key.jks")
             storePassword = "password"
         }
 
@@ -94,7 +94,7 @@ android {
             isDebuggable = true
             isMinifyEnabled = false
             isShrinkResources = false
-            signingConfig = signingConfigs.getByName("debug")//signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

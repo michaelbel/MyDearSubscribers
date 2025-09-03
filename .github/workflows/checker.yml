@@ -1,10 +1,10 @@
 name: Followers hourly check
 
 on:
-  schedule:
-    - cron: '0 * * * *'
-  push:
-  workflow_dispatch:
+#  schedule:
+#    - cron: '0 * * * *'
+#  push:
+#  workflow_dispatch:
 
 concurrency:
   group: followers-cron
