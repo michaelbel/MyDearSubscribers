@@ -1,9 +1,7 @@
-# Folders
 .kotlin
 .gradle
-.idea
+.idea/*
+!.idea/icon.svg
 build
 .claude
-
-# Files
 local.properties
