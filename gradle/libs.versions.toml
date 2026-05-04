@@ -10,6 +10,7 @@ androidx-activity = "1.13.0"
 androidx-compose-ui = "1.11.0"
 androidx-compose-material3 = "1.4.0"
 androidx-compose-material-icons = "1.7.8"
+androidx-navigation3 = "1.1.1"
 androidx-palette = "1.0.0"
 androidx-core-splashscreen = "1.2.0"
 
@@ -20,9 +21,12 @@ androidx-compose-material3 = { module = "androidx.compose.material3:material3", 
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "androidx-compose-ui" }
 androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "androidx-compose-material-icons" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-compose-ui" }
+androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "androidx-navigation3" }
+androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3" }
 androidx-palette = { module = "androidx.palette:palette", version.ref = "androidx-palette" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

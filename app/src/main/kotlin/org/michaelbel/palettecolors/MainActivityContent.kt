@@ -1,27 +1,41 @@
 package org.michaelbel.palettecolors
 
-import androidx.activity.compose.BackHandler
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import androidx.navigation3.ui.NavDisplay
 import org.michaelbel.palettecolors.screen.DetailsScreen
 import org.michaelbel.palettecolors.screen.ListScreen
 
 @Composable
 fun MainActivityContent() {
-    var selectedBoarId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val backStack = rememberNavBackStack(AppRoute.List)
 
-    if (selectedBoarId == null) {
-        ListScreen(
-            onNavigateToDetails = { selectedBoarId = it }
-        )
-    } else {
-        BackHandler { selectedBoarId = null }
-        DetailsScreen(
-            boarId = selectedBoarId!!,
-            onBack = { selectedBoarId = null }
-        )
-    }
+    NavDisplay(
+        backStack = backStack,
+        modifier = Modifier.fillMaxSize(),
+        popTransitionSpec = { fadeIn() togetherWith fadeOut() using SizeTransform(clip = false) },
+        predictivePopTransitionSpec = { fadeIn() togetherWith fadeOut() using SizeTransform(clip = false) },
+        entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
+        entryProvider = entryProvider {
+            entry<AppRoute.List> {
+                ListScreen(
+                    onNavigateToDetails = { boarId -> backStack.add(AppRoute.Details(boarId)) }
+                )
+            }
+            entry<AppRoute.Details> { route ->
+                DetailsScreen(
+                    boarId = route.boarId,
+                    onBack = { backStack.removeLastOrNull() }
+                )
+            }
+        }
+    )
 }
