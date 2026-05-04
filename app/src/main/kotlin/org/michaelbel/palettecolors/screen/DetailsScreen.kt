@@ -2,6 +2,10 @@
 
 package org.michaelbel.palettecolors.screen
 
+import android.graphics.BitmapFactory
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,13 +33,23 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.palette.graphics.Palette
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.michaelbel.palettecolors.boarList
 
 @Composable
@@ -45,6 +59,36 @@ fun DetailsScreen(
 ) {
     val boar = boarList.first { it.id == boarId }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val context = LocalContext.current
+
+    var containerColor by remember { mutableStateOf<Color?>(null) }
+    var onContainerColor by remember { mutableStateOf<Color?>(null) }
+
+    LaunchedEffect(boar.drawableRes) {
+        val palette = withContext(Dispatchers.Default) {
+            val bitmap = BitmapFactory.decodeResource(context.resources, boar.drawableRes)
+            Palette.from(bitmap).generate()
+        }
+        val swatch = palette.vibrantSwatch ?: palette.dominantSwatch
+        swatch?.let {
+            containerColor = Color(it.rgb)
+            onContainerColor = Color(it.bodyTextColor)
+        }
+    }
+
+    val defaultContainerColor = MaterialTheme.colorScheme.background
+    val defaultOnContainerColor = MaterialTheme.colorScheme.onBackground
+
+    val animatedContainerColor by animateColorAsState(
+        targetValue = containerColor ?: defaultContainerColor,
+        animationSpec = tween(durationMillis = 400, easing = LinearEasing),
+        label = "containerColor"
+    )
+    val animatedOnContainerColor by animateColorAsState(
+        targetValue = onContainerColor ?: defaultOnContainerColor,
+        animationSpec = tween(durationMillis = 400, easing = LinearEasing),
+        label = "onContainerColor"
+    )
 
     Scaffold(
         modifier = Modifier
@@ -60,9 +104,7 @@ fun DetailsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onBack
-                    ) {
+                    IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = null
@@ -70,11 +112,15 @@ fun DetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = animatedContainerColor,
+                    scrolledContainerColor = animatedContainerColor,
+                    titleContentColor = animatedOnContainerColor,
+                    navigationIconContentColor = animatedOnContainerColor
                 ),
                 scrollBehavior = scrollBehavior
             )
         },
+        containerColor = animatedContainerColor,
         contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         LazyColumn(
@@ -101,7 +147,9 @@ fun DetailsScreen(
             item {
                 Text(
                     text = boar.description,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = animatedOnContainerColor
+                    )
                 )
             }
         }
