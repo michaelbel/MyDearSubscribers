@@ -48,20 +48,17 @@ fun ListScreen(
                 ),
                 scrollBehavior = scrollBehavior
             )
-        },
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal)
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = innerPadding + PaddingValues(
-                start = 16.dp,
-                top = 16.dp,
-                end = 16.dp,
-                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            ),
+            contentPadding = innerPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(boarList) { boar ->
+            items(
+                items = boarList,
+                key = { it.id }
+            ) { boar ->
                 BoarCard(
                     entity = boar,
                     onClick = onNavigateToDetails

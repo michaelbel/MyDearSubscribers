@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,15 +59,14 @@ fun DetailsScreen(
     onBack: () -> Unit
 ) {
     val boar = boarList.first { it.id == boarId }
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    val context = LocalContext.current
+    val resources = LocalResources.current
 
     var containerColor by remember { mutableStateOf<Color?>(null) }
     var onContainerColor by remember { mutableStateOf<Color?>(null) }
 
     LaunchedEffect(boar.drawableRes) {
         val palette = withContext(Dispatchers.Default) {
-            val bitmap = BitmapFactory.decodeResource(context.resources, boar.drawableRes)
+            val bitmap = BitmapFactory.decodeResource(resources, boar.drawableRes)
             Palette.from(bitmap).generate()
         }
         val swatch = palette.vibrantSwatch ?: palette.dominantSwatch
@@ -91,20 +91,18 @@ fun DetailsScreen(
     )
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = boar.name,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 2
+                        text = boar.name
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        onClick = onBack
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = null
@@ -112,25 +110,17 @@ fun DetailsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = animatedContainerColor,
-                    scrolledContainerColor = animatedContainerColor,
+                    containerColor = Color.Transparent,
                     titleContentColor = animatedOnContainerColor,
                     navigationIconContentColor = animatedOnContainerColor
-                ),
-                scrollBehavior = scrollBehavior
+                )
             )
         },
-        containerColor = animatedContainerColor,
-        contentWindowInsets = ScaffoldDefaults.contentWindowInsets.only(WindowInsetsSides.Horizontal)
+        containerColor = animatedContainerColor
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = innerPadding + PaddingValues(
-                start = 16.dp,
-                top = 16.dp,
-                end = 16.dp,
-                bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-            ),
+            contentPadding = innerPadding + PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
