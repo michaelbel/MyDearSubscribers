@@ -5,3 +5,7 @@ PaletteColors
 [![last-commit](https://img.shields.io/github/last-commit/michaelbel/PaletteColors?style=for-the-badge&logo=github&labelColor=3F464F)](https://github.com/michaelbel/PaletteColors/commits)
 
 Извлечения цветовой палитры из изображений с помощью AndroidX Palette
+
+<div>
+    <img src=".github/app.gif" width="33%" alt="App Video">
+</div>
