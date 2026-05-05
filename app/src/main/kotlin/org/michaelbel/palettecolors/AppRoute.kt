@@ -4,11 +4,11 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface AppRoute : NavKey {
+sealed interface AppRoute: NavKey {
 
     @Serializable
-    data object List : AppRoute
+    data object List: AppRoute
 
     @Serializable
-    data class Details(val boarId: Int) : AppRoute
+    data class Details(val boarId: Int): AppRoute
 }
