@@ -2,22 +2,14 @@
 
 package org.michaelbel.palettecolors.screen
 
-import android.graphics.BitmapFactory
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -41,14 +32,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
+import coil3.compose.AsyncImage
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.michaelbel.palettecolors.boarList
@@ -59,17 +52,23 @@ fun DetailsScreen(
     onBack: () -> Unit
 ) {
     val boar = boarList.first { it.id == boarId }
-    val resources = LocalResources.current
+    val context = LocalContext.current
 
     var containerColor by remember { mutableStateOf<Color?>(null) }
     var onContainerColor by remember { mutableStateOf<Color?>(null) }
 
-    LaunchedEffect(boar.drawableRes) {
-        val palette = withContext(Dispatchers.Default) {
-            val bitmap = BitmapFactory.decodeResource(resources, boar.drawableRes)
-            Palette.from(bitmap).generate()
+    LaunchedEffect(boar.imageUrl) {
+        val palette = withContext(Dispatchers.IO) {
+            val request = ImageRequest.Builder(context)
+                .data(boar.imageUrl)
+                .allowHardware(false)
+                .build()
+            val result = context.imageLoader.execute(request)
+            if (result is SuccessResult) {
+                Palette.from(result.image.toBitmap()).generate()
+            } else null
         }
-        val swatch = palette.vibrantSwatch ?: palette.dominantSwatch
+        val swatch = palette?.vibrantSwatch ?: palette?.dominantSwatch
         swatch?.let {
             containerColor = Color(it.rgb)
             onContainerColor = Color(it.bodyTextColor)
@@ -94,11 +93,7 @@ fun DetailsScreen(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = boar.name
-                    )
-                },
+                title = { Text(text = boar.name) },
                 navigationIcon = {
                     IconButton(
                         onClick = onBack
@@ -124,8 +119,8 @@ fun DetailsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Image(
-                    painter = painterResource(boar.drawableRes),
+                AsyncImage(
+                    model = boar.imageUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()

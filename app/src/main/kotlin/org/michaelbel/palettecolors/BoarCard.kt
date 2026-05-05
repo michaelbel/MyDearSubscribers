@@ -1,6 +1,5 @@
 package org.michaelbel.palettecolors
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -16,9 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 
 @Composable
 fun BoarCard(
@@ -26,21 +25,19 @@ fun BoarCard(
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = MaterialTheme.shapes.large
-
     Card(
         modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        shape = shape
+        shape = MaterialTheme.shapes.large
     ) {
         Column(
             modifier = Modifier
-                .clickable { onClick(entity.id) }
                 .fillMaxWidth()
+                .clickable { onClick(entity.id) }
         ) {
-            Image(
-                painter = painterResource(entity.drawableRes),
+            AsyncImage(
+                model = entity.imageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -48,13 +45,14 @@ fun BoarCard(
                     .aspectRatio(16F / 9F)
                     .clip(
                         shape = RoundedCornerShape(
-                            topStart = shape.topStart,
-                            topEnd = shape.topEnd,
+                            topStart = MaterialTheme.shapes.large.topStart,
+                            topEnd = MaterialTheme.shapes.large.topEnd,
                             bottomStart = CornerSize(0.dp),
                             bottomEnd = CornerSize(0.dp)
                         )
                     )
             )
+
             Text(
                 text = entity.name,
                 modifier = Modifier

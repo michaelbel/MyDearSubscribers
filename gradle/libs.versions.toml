@@ -13,6 +13,7 @@ androidx-compose-material-icons = "1.7.8"
 androidx-navigation3 = "1.1.1"
 androidx-palette = "1.0.0"
 androidx-core-splashscreen = "1.2.0"
+coil = "3.4.0"
 
 [libraries]
 google-material = { module = "com.google.android.material:material", version.ref = "google-material" }
@@ -25,6 +26,8 @@ androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runt
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "androidx-navigation3" }
 androidx-palette = { module = "androidx.palette:palette", version.ref = "androidx-palette" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
